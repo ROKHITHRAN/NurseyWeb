@@ -1,14 +1,25 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, ShoppingCart, Heart, Search } from 'lucide-react';
-import { useAppContext } from '../../context/AppContext';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  Menu,
+  X,
+  ShoppingCart,
+  Heart,
+  Search,
+  CircleUserRound,
+} from "lucide-react";
+import { useAppContext } from "../../context/AppContext";
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { cart, wishlist } = useAppContext();
+  const { cart, wishlist, login, setLogin } = useAppContext();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleLogin = () => {
+    setLogin(!login);
   };
 
   return (
@@ -23,19 +34,34 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-4">
-            <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600">
+            <Link
+              to="/"
+              className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600"
+            >
               Home
             </Link>
-            <Link to="/categories" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600">
+            <Link
+              to="/categories"
+              className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600"
+            >
               Categories
             </Link>
-            <Link to="/about" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600">
+            <Link
+              to="/about"
+              className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600"
+            >
               About Us
             </Link>
-            <Link to="/contact" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600">
+            <Link
+              to="/contact"
+              className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600"
+            >
               Contact
             </Link>
-            <Link to="/customer-care" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600">
+            <Link
+              to="/customer-care"
+              className="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600"
+            >
               Customer Care
             </Link>
           </div>
@@ -66,6 +92,10 @@ const Navbar: React.FC = () => {
                   </span>
                 )}
               </Link>
+              <CircleUserRound
+                className="h-6 w-6 text-white ml-4"
+                onClick={handleLogin}
+              />
             </div>
 
             {/* Mobile menu button */}
