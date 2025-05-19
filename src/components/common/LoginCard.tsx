@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useAppContext } from "../../context/AppContext";
+import { useAppContext, User } from "../../context/AppContext";
 import {
   auth,
   provider,
@@ -9,13 +9,21 @@ import {
 import { doc, setDoc } from "firebase/firestore";
 
 const LoginCard = () => {
-  const { setLogin } = useAppContext();
+  const { setLogin, setUser } = useAppContext();
 
   const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      console.log("User Info:", user);
+      const filteredUser: User = {
+        email: user.email ?? "",
+        displayName: user.displayName ?? "",
+        photoURL: user.photoURL ?? "",
+        lastLogin: new Date().toISOString(),
+        status: "active",
+      };
+      setUser(filteredUser);
+      console.log("User Info:", filteredUser);
 
       const userRef = doc(db, "users", user.email);
       await setDoc(

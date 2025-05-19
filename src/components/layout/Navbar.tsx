@@ -12,11 +12,12 @@ import { useAppContext } from "../../context/AppContext";
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { cart, wishlist, login, setLogin } = useAppContext();
+  const { cart, wishlist, login, setLogin, user } = useAppContext();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+  console.log(user);
 
   const handleLogin = () => {
     setLogin(!login);
@@ -92,10 +93,21 @@ const Navbar: React.FC = () => {
                   </span>
                 )}
               </Link>
-              <CircleUserRound
-                className="h-6 w-6 text-white ml-4"
-                onClick={handleLogin}
-              />
+              {user.status !== "active" && (
+                <CircleUserRound
+                  className="h-6 w-6 text-white ml-4"
+                  onClick={handleLogin}
+                />
+              )}
+              {user.status === "active" && (
+                <div className="flex items-center ml-4">
+                  <img
+                    src={user.photoURL}
+                    alt="User Avatar"
+                    className="h-8 w-8 rounded-full"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Mobile menu button */}

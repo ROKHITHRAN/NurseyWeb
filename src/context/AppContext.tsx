@@ -5,6 +5,8 @@ interface AppContextType {
   cart: CartItem[];
   wishlist: WishlistItem[];
   login: boolean;
+  user: User;
+  setUser: React.Dispatch<React.SetStateAction<User>>;
   setLogin: React.Dispatch<React.SetStateAction<boolean>>;
   addToCart: (plant: Plant, quantity: number) => void;
   removeFromCart: (plantId: string) => void;
@@ -23,6 +25,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [login, setLogin] = useState<boolean>(false);
+  const [user, setUser] = useState<User>({
+    email: "",
+    displayName: "",
+    photoURL: "",
+    lastLogin: "",
+    status: "inactive",
+  });
 
   const addToCart = (plant: Plant, quantity: number) => {
     setCart((prevCart) => {
@@ -90,6 +99,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         clearCart,
         login,
         setLogin,
+        user,
+        setUser,
       }}
     >
       {children}
@@ -104,3 +115,11 @@ export const useAppContext = () => {
   }
   return context;
 };
+
+export interface User {
+  email: string;
+  displayName: string;
+  photoURL: string;
+  lastLogin: string;
+  status: string;
+}
