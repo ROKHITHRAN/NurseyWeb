@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useNavigation } from "react-router-dom";
 import {
   Menu,
   X,
@@ -13,6 +13,7 @@ import { useAppContext } from "../../context/AppContext";
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { cart, wishlist, login, setLogin, user } = useAppContext();
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -21,6 +22,10 @@ const Navbar: React.FC = () => {
 
   const handleLogin = () => {
     setLogin(!login);
+  };
+
+  const handleProfileClick = () => {
+    navigate("/profile");
   };
 
   return (
@@ -100,7 +105,10 @@ const Navbar: React.FC = () => {
                 />
               )}
               {user.status === "active" && (
-                <div className="flex items-center ml-4">
+                <div
+                  className="flex items-center ml-4"
+                  onClick={handleProfileClick}
+                >
                   <img
                     src={user.photoURL}
                     alt="User Avatar"

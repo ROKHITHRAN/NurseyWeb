@@ -7,6 +7,7 @@ import {
   db,
 } from "../../service/firebase-config.js";
 import { doc, setDoc } from "firebase/firestore";
+import { Bounce, toast } from "react-toastify";
 
 const LoginCard = () => {
   const { setLogin, setUser } = useAppContext();
@@ -23,7 +24,6 @@ const LoginCard = () => {
         status: "active",
       };
       setUser(filteredUser);
-      console.log("User Info:", filteredUser);
 
       const userRef = doc(db, "users", user.email);
       await setDoc(
@@ -37,8 +37,33 @@ const LoginCard = () => {
         { merge: true }
       ); // Merge to update or create if not exists
 
+      const emailCollectionRef = doc(db, user.email, "placeholderDoc");
+      await setDoc(emailCollectionRef, { createdAt: new Date().toISOString() });
+
+      toast.success("Login Success !!!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        transition: Bounce,
+      });
       setLogin(false);
     } catch (error) {
+      toast.error("Login Unsuccessful !!!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        transition: Bounce,
+      });
       console.error("Error during Google Sign-In:", error);
     }
   };
