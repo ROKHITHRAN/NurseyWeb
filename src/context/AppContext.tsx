@@ -148,6 +148,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const clearCart = () => {
+    const userEmail = user?.email;
+    const cartRef = doc(db, userEmail, "cart");
+    setDoc(cartRef, { cart: [] });
     setCart([]);
   };
 
