@@ -57,7 +57,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         updatedCart = [...prevCart, { plant, quantity }];
       }
 
-      // Save to Firebase
       const cartRef = doc(db, userEmail, "cart");
       setDoc(cartRef, { cart: updatedCart })
         .then(() => {
@@ -132,15 +131,34 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const addToWishlist = (plant: Plant) => {
+    const wisListRef = doc(db, user?.email, "wishlist");
+
     if (!isInWishlist(plant.id)) {
+      setDoc(wisListRef, { wishlist: [...wishlist, { plant }] })
+        .then(() => {
+          console.log("Wishlist updated in Firebase");
+        })
+        .catch((error) => {
+          console.error("Error updating wishlist in Firebase:", error);
+        });
+
       setWishlist((prevWishlist) => [...prevWishlist, { plant }]);
     }
   };
 
   const removeFromWishlist = (plantId: string) => {
-    setWishlist((prevWishlist) =>
-      prevWishlist.filter((item) => item.plant.id !== plantId)
-    );
+    const newWishlist = wishlist.filter((item) => item.plant.id !== plantId);
+    const wishlistRef = doc(db, user?.email, "wishlist");
+
+    setDoc(wishlistRef, { wishlist: newWishlist })
+      .then(() => {
+        console.log("Wishlist updated in Firebase");
+      })
+      .catch((error) => {
+        console.error("Error updating wishlist in Firebase:", error);
+      });
+
+    setWishlist(newWishlist);
   };
 
   const isInWishlist = (plantId: string) => {

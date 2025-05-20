@@ -37,10 +37,24 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant }) => {
   };
 
   const handleWishlistToggle = () => {
-    if (isInWishlist(plant.id)) {
-      removeFromWishlist(plant.id);
+    if (user.status === "inactive") {
+      toast.info("Please Login", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        transition: Bounce,
+      });
     } else {
-      addToWishlist(plant);
+      if (isInWishlist(plant.id)) {
+        removeFromWishlist(plant.id);
+      } else {
+        addToWishlist(plant);
+      }
     }
   };
 
