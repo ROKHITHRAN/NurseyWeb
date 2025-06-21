@@ -22,6 +22,7 @@ export interface Subcategory {
   id: string;
   name: string;
   image: string;
+  plants: Plant[];
 }
 
 export interface CartItem {

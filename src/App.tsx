@@ -16,6 +16,7 @@ import CustomerCarePage from "./pages/CustomerCarePage";
 import ServicesPage from "./pages/ServicesPage";
 import UserPage from "./pages/UserPage";
 import { ToastContainer } from "react-toastify";
+import AdminPage from "./pages/AdminPage";
 
 function App() {
   return (
@@ -44,6 +45,8 @@ function App() {
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/customer-care" element={<CustomerCarePage />} />
               <Route path="/services" element={<ServicesPage />} />
+              <Route path="/admin/categories" element={<AdminPage />} />
+              <Route path="/admin/categories/" element={<AdminPage />} />
             </Routes>
           </main>
           <Footer />

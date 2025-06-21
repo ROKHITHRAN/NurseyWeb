@@ -6,7 +6,7 @@ import {
   signInWithPopup,
   db,
 } from "../../service/firebase-config.js";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Bounce, toast } from "react-toastify";
 
 const LoginCard = () => {
@@ -16,23 +16,34 @@ const LoginCard = () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      console.log(user);
+
+      const userRef = doc(db, "users", user.email!);
+      const userSnap = await getDoc(userRef);
+
+      let role = "user";
+
+      if (userSnap.exists()) {
+        // Keep the role already stored in Firestore
+        const userData = userSnap.data();
+        role = userData.role || "user"; // fallback to "user" if role is undefined
+      }
+
       const filteredUser: User = {
         email: user.email ?? "",
         displayName: user.displayName ?? "",
         photoURL: user.photoURL ?? "",
         lastLogin: new Date().toISOString(),
         status: "active",
+        role: role,
       };
       setUser(filteredUser);
 
-      const userRef = doc(db, "users", user.email);
+      // const userRef = doc(db, "users", user.email);
       await setDoc(
         userRef,
         {
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          lastLogin: new Date().toISOString(),
+          ...filteredUser,
         },
         { merge: true }
       ); // Merge to update or create if not exists

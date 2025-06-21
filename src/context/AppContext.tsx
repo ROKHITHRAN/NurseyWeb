@@ -209,4 +209,5 @@ export interface User {
   photoURL: string;
   lastLogin: string;
   status: string;
+  role?: string;
 }
