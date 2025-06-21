@@ -8,23 +8,19 @@ import plus from "../data/add.png";
 import AddCategoryCard from "../components/common/AddCategoryCard";
 const CategoriesPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
+
   useEffect(() => {
     const fetchCategories = async () => {
       const data = await getCategories();
       setCategories(data);
       console.log("Fetched categories:", data);
-      // optionally: setState(data);
     };
     fetchCategories();
   }, []);
+
   const user = useAppContext();
   const [isPopUpVisible, setIsPopUpVisible] = useState<boolean>(false);
-  const [category, setCategory] = useState<Category>({
-    id: "",
-    name: "Dummy Category",
-    image: "https://via.placeholder.com/150",
-    subcategories: [],
-  });
+
   return (
     <div className="bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,7 +53,6 @@ const CategoriesPage: React.FC = () => {
             <AddCategoryCard
               isPopUpVisible={isPopUpVisible}
               setIsPopUpVisible={setIsPopUpVisible}
-              setCategory={setCategory}
               category="main"
             />
           )}

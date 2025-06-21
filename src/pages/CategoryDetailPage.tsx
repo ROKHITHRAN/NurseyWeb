@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { categories } from "../data/plants";
 import SubcategoryCard from "../components/common/SubcategoryCard";
@@ -6,18 +6,30 @@ import { ChevronRight } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import plus from "../data/add.png";
 import AddCategoryCard from "../components/common/AddCategoryCard";
+import { getSubCategories } from "../service/services";
+import { Subcategory } from "../types";
 
 const CategoryDetailPage: React.FC = () => {
   const { categoryName } = useParams<{ categoryName: string }>();
 
+  const [subcategories, setSubCategories] = useState<Subcategory[]>([]);
   const [isPopUpVisible, setIsPopUpVisible] = useState<boolean>(false);
   const user = useAppContext();
-
   const category = categories.find(
     (cat) => cat.name.toLowerCase() === categoryName?.toLowerCase()
   );
 
-  if (!category) {
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const data = await getSubCategories(categoryName!);
+      setSubCategories(data);
+      console.log("Fetched categories:", subcategories);
+      // optionally: setState(data);
+    };
+    fetchCategories();
+  }, [categoryName]);
+
+  if (!subcategories) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
         <h2 className="text-2xl font-bold text-gray-800">Category not found</h2>
@@ -54,6 +66,7 @@ const CategoryDetailPage: React.FC = () => {
       </div>
     );
   }
+  console.log(subcategories);
 
   return (
     <div className="bg-gray-50 py-12">
@@ -67,35 +80,42 @@ const CategoryDetailPage: React.FC = () => {
             Categories
           </Link>
           <ChevronRight className="h-4 w-4 mx-1" />
-          <span className="text-gray-800">{category.name}</span>
+          <span className="text-gray-800">{categoryName}</span>
         </div>
 
         <div className="mb-12">
           <div className="flex flex-col md:flex-row md:items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-800">
-                {category.name}
+                {categoryName}
               </h1>
               <p className="mt-2 text-lg text-gray-600">
-                Browse {category.name.toLowerCase()} by subcategory
+                Browse {categoryName} by subcategory
               </p>
             </div>
-            <img
+            {/* <img
               src={category.image}
               alt={category.name}
               className="mt-4 md:mt-0 w-full md:w-48 h-32 object-cover rounded-lg shadow-md"
-            />
+            /> */}
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {category.subcategories.map((subcategory) => (
+          {subcategories.map((subcategory) => (
             <SubcategoryCard
               key={subcategory.id}
               subcategory={subcategory}
-              categoryName={category.name}
+              categoryName={categoryName!}
             />
           ))}
+          {/* {subcategories.map((subcategory) => (
+            <SubcategoryCard
+              key={subcategory.id}
+              subcategory={subcategory}
+              categoryName={categoryName!}
+            />
+          ))} */}
           {user.user.role === "admin" && (
             <div
               onClick={() => setIsPopUpVisible(!isPopUpVisible)}
@@ -114,6 +134,7 @@ const CategoryDetailPage: React.FC = () => {
               isPopUpVisible={isPopUpVisible}
               setIsPopUpVisible={setIsPopUpVisible}
               category="sub"
+              subcat={categoryName}
             />
           )}
         </div>

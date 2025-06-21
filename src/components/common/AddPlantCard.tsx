@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import React, { useState } from "react";
 import { Category, Plant, Subcategory } from "../../types";
-import { addCategory, addSubCategories } from "../../service/services";
+import { addPlants } from "../../service/services";
 
 interface AddPlantCardProps {
   isPopUpVisible: boolean;
@@ -12,7 +12,7 @@ interface AddPlantCardProps {
   subcat: string;
 }
 
-const AddCategoryCard: React.FC<AddPlantCardProps> = ({
+const AddPlantCard: React.FC<AddPlantCardProps> = ({
   isPopUpVisible,
   setIsPopUpVisible,
   category,
@@ -33,16 +33,6 @@ const AddCategoryCard: React.FC<AddPlantCardProps> = ({
     featured: false, // Optional, safe to initialize
   });
 
-  //   id: string;
-  //   title: string;
-  //   description: string;
-  //   price: number;
-  //   discountedPrice?: number;
-  //   stock: number;
-  //   images: string[];
-  //   category: string;
-  //   subcategory: string;
-  //   featured?: boolean;
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -62,25 +52,28 @@ const AddCategoryCard: React.FC<AddPlantCardProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     plant.images.push(image);
     setPlant({ ...plant, category: category, subcategory: subcat });
+    addPlants(category, subcat, plant);
     setIsPopUpVisible(!isPopUpVisible);
     e.preventDefault();
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <form
         onSubmit={handleSubmit}
-        className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 space-y-6"
+        className="max-w-md w-full bg-white rounded-xl shadow-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" // 👈 Added max-height and scroll
       >
-        <X
-          className="text-black flex justify-self-end"
-          onClick={() => setIsPopUpVisible(!isPopUpVisible)}
-        />
-        <h2 className="text-2xl font-bold text-green-700 text-center mb-4">
-          {category === "main" ? "Add Category" : "Add SubCategory"}
-        </h2>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-bold text-green-700">Add Plants</h2>
+          <X
+            className="cursor-pointer text-gray-500 hover:text-black"
+            onClick={() => setIsPopUpVisible(false)}
+          />
+        </div>
+
+        {/* Image Upload */}
         <div className="flex flex-col items-center">
-          <label className="w-32 h-32 flex items-center justify-center bg-green-100 rounded-full cursor-pointer overflow-hidden border-2 border-green-300 hover:border-green-500 transition">
+          <label className="w-28 h-28 flex items-center justify-center bg-green-100 rounded-full cursor-pointer overflow-hidden border-2 border-green-300 hover:border-green-500 transition">
             {preview ? (
               <img
                 src={preview}
@@ -88,7 +81,7 @@ const AddCategoryCard: React.FC<AddPlantCardProps> = ({
                 className="object-cover w-full h-full"
               />
             ) : (
-              <span className="text-green-400 text-4xl">+</span>
+              <span className="text-green-400 text-3xl">+</span>
             )}
             <input
               type="file"
@@ -97,90 +90,47 @@ const AddCategoryCard: React.FC<AddPlantCardProps> = ({
               onChange={handleImageChange}
             />
           </label>
-          <span className="text-sm text-gray-500 mt-2">
-            Click to upload image
-          </span>
+          <span className="text-sm text-gray-500 mt-1">Upload Image</span>
         </div>
-        <div>
-          <label className="block text-green-700 font-semibold mb-1">
-            Title
-          </label>
-          <input
-            type="text"
-            value={plant.title}
-            onChange={(e) => setPlant({ ...plant, title: e.target.value })}
-            placeholder="Enter your name"
-            className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-            required
-          />
+
+        {/* Input Fields */}
+        <div className="space-y-3">
+          {[
+            { key: "title", label: "Title", type: "text" },
+            { key: "description", label: "Description", type: "text" },
+            { key: "price", label: "Price", type: "number" },
+            {
+              key: "discountedPrice",
+              label: "Discounted Price",
+              type: "number",
+            },
+            { key: "stock", label: "Stock", type: "number" },
+          ].map(({ key, label, type }) => (
+            <div key={key}>
+              <label className="block text-green-700 font-semibold mb-1">
+                {label}
+              </label>
+              <input
+                type={type}
+                value={(plant as any)[key]}
+                onChange={(e) =>
+                  setPlant((prev) => ({
+                    ...prev,
+                    [key]:
+                      type === "text" ? e.target.value : Number(e.target.value),
+                  }))
+                }
+                className="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                required
+              />
+            </div>
+          ))}
         </div>
-        <div>
-          <label className="block text-green-700 font-semibold mb-1">
-            Description
-          </label>
-          <input
-            type="text"
-            value={plant.description}
-            onChange={(e) =>
-              setPlant({ ...plant, description: e.target.value })
-            }
-            placeholder="Enter the description"
-            className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-green-700 font-semibold mb-1">
-            Price
-          </label>
-          <input
-            type="number"
-            value={plant.price}
-            onChange={(e) =>
-              setPlant({ ...plant, price: Number(e.target.value) })
-            }
-            placeholder="Enter the price"
-            className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-green-700 font-semibold mb-1">
-            Discounted Price
-          </label>
-          <input
-            type="number"
-            value={plant.discountedPrice}
-            onChange={(e) =>
-              setPlant({ ...plant, discountedPrice: Number(e.target.value) })
-            }
-            placeholder="Enter the price"
-            className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-green-700 font-semibold mb-1">
-            Stock
-          </label>
-          <input
-            type="number"
-            value={plant.stock}
-            onChange={(e) =>
-              setPlant({ ...plant, stock: Number(e.target.value) })
-            }
-            placeholder="Enter the price"
-            className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-            required
-          />
-        </div>
+
+        {/* Save Button */}
         <button
           type="submit"
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition"
-          onClick={() => {
-            setIsPopUpVisible(!isPopUpVisible);
-          }}
-          onSubmit={handleSubmit}
         >
           Save
         </button>
@@ -189,4 +139,4 @@ const AddCategoryCard: React.FC<AddPlantCardProps> = ({
   );
 };
 
-export default AddCategoryCard;
+export default AddPlantCard;
