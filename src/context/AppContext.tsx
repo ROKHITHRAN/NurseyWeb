@@ -1,7 +1,23 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { Plant, CartItem, WishlistItem } from "../types";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "../service/firebase-config.js";
+import { auth, db } from "../service/firebase-config";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+
+export interface User {
+  email: string;
+  displayName: string;
+  photoURL: string;
+  lastLogin: string;
+  status: string;
+  role?: string;
+}
 
 interface AppContextType {
   cart: CartItem[];
@@ -33,38 +49,45 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     photoURL: "",
     lastLogin: "",
     status: "inactive",
+    role: "user",
   });
+
+  // ✅ Persist login on refresh
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userRef = doc(db, "users", firebaseUser.email!);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.exists() ? userSnap.data() : {};
+        setUser({
+          email: firebaseUser.email ?? "",
+          displayName: firebaseUser.displayName ?? "",
+          photoURL: firebaseUser.photoURL ?? "",
+          lastLogin: new Date().toISOString(),
+          status: "active",
+          role: userData.role || "user",
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const addToCart = async (plant: Plant, quantity: number) => {
     const userEmail = user?.email;
+    if (!userEmail) return;
 
-    if (!userEmail) {
-      console.error("User is not authenticated");
-      return;
-    }
-
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.plant.id === plant.id);
-      let updatedCart;
-
-      if (existingItem) {
-        updatedCart = prevCart.map((item) =>
-          item.plant.id === plant.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      } else {
-        updatedCart = [...prevCart, { plant, quantity }];
-      }
+    setCart((prev) => {
+      const existingItem = prev.find((item) => item.plant.id === plant.id);
+      const updatedCart = existingItem
+        ? prev.map((item) =>
+            item.plant.id === plant.id
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          )
+        : [...prev, { plant, quantity }];
 
       const cartRef = doc(db, userEmail, "cart");
-      setDoc(cartRef, { cart: updatedCart })
-        .then(() => {
-          console.log("Cart updated in Firebase");
-        })
-        .catch((error) => {
-          console.error("Error updating cart in Firebase:", error);
-        });
+      setDoc(cartRef, { cart: updatedCart });
 
       return updatedCart;
     });
@@ -72,98 +95,48 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
 
   const removeFromCart = async (plantId: string) => {
     const userEmail = user?.email;
+    if (!userEmail) return;
 
-    if (!userEmail) {
-      console.error("User is not authenticated");
-      return;
-    }
-
-    setCart((prevCart) => {
-      const updatedCart = prevCart.filter((item) => item.plant.id !== plantId);
-
-      // Update Firebase
+    setCart((prev) => {
+      const updatedCart = prev.filter((item) => item.plant.id !== plantId);
       const cartRef = doc(db, userEmail, "cart");
-      setDoc(cartRef, { cart: updatedCart })
-        .then(() => {
-          console.log("Item removed from cart in Firebase");
-        })
-        .catch((error) => {
-          console.error("Error removing item from Firebase cart:", error);
-        });
-
+      setDoc(cartRef, { cart: updatedCart });
       return updatedCart;
     });
   };
 
   const updateCartItemQuantity = async (plantId: string, quantity: number) => {
+    if (quantity <= 0) return removeFromCart(plantId);
     const userEmail = user?.email;
+    if (!userEmail) return;
 
-    if (!userEmail) {
-      console.error("User is not authenticated");
-      return;
-    }
-
-    if (quantity <= 0) {
-      removeFromCart(plantId);
-      return;
-    }
-
-    setCart((prevCart) => {
-      const updatedCart = prevCart.map((item) =>
+    setCart((prev) => {
+      const updatedCart = prev.map((item) =>
         item.plant.id === plantId ? { ...item, quantity } : item
       );
-
-      // Update Firebase
       const cartRef = doc(db, userEmail, "cart");
-      setDoc(cartRef, { cart: updatedCart })
-        .then(() => {
-          console.log("Cart item quantity updated in Firebase");
-        })
-        .catch((error) => {
-          console.error(
-            "Error updating cart item quantity in Firebase:",
-            error
-          );
-        });
-
+      setDoc(cartRef, { cart: updatedCart });
       return updatedCart;
     });
   };
 
   const addToWishlist = (plant: Plant) => {
     const wisListRef = doc(db, user?.email, "wishlist");
-
     if (!isInWishlist(plant.id)) {
-      setDoc(wisListRef, { wishlist: [...wishlist, { plant }] })
-        .then(() => {
-          console.log("Wishlist updated in Firebase");
-        })
-        .catch((error) => {
-          console.error("Error updating wishlist in Firebase:", error);
-        });
-
-      setWishlist((prevWishlist) => [...prevWishlist, { plant }]);
+      setDoc(wisListRef, { wishlist: [...wishlist, { plant }] });
+      setWishlist((prev) => [...prev, { plant }]);
     }
   };
 
   const removeFromWishlist = (plantId: string) => {
     const newWishlist = wishlist.filter((item) => item.plant.id !== plantId);
     const wishlistRef = doc(db, user?.email, "wishlist");
-
-    setDoc(wishlistRef, { wishlist: newWishlist })
-      .then(() => {
-        console.log("Wishlist updated in Firebase");
-      })
-      .catch((error) => {
-        console.error("Error updating wishlist in Firebase:", error);
-      });
-
+    setDoc(wishlistRef, { wishlist: newWishlist });
     setWishlist(newWishlist);
   };
 
-  const isInWishlist = (plantId: string) => {
-    return wishlist.some((item) => item.plant.id === plantId);
-  };
+  const isInWishlist = (plantId: string) =>
+    wishlist.some((item) => item.plant.id === plantId);
 
   const clearCart = () => {
     const userEmail = user?.email;
@@ -202,12 +175,3 @@ export const useAppContext = () => {
   }
   return context;
 };
-
-export interface User {
-  email: string;
-  displayName: string;
-  photoURL: string;
-  lastLogin: string;
-  status: string;
-  role?: string;
-}
